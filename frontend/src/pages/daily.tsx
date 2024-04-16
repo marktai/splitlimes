@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import CloverService, { GameType } from '../api';
+import WhereisService, { GameType } from '../api';
 import { Guess } from './guess';
 
 
@@ -13,7 +13,7 @@ export class Daily extends React.Component<{}, DailyState> {
   };
 
   async componentDidMount() {
-    const game = await CloverService.getDailyGame();
+    const game = await WhereisService.getDailyGame();
     this.setState({
       game: game,
     });

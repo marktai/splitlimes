@@ -3,4 +3,4 @@ version: '3.3'
 services:
   nginx:
     ports:
-      - "7080:80"
+      - "9980:80"

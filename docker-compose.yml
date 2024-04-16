@@ -8,25 +8,18 @@ services:
     volumes:
       - database:/var/lib/postgresql/data
     restart: always
-  websockets:
-    image: clover/websockets:latest
-    build: ./websockets
-    ports:
-      - "7002:80"
-    restart: always
   backend:
-    image: clover/backend:latest
+    image: split/backend:latest
     build: ./backend
     volumes:
       - ./backend/src:/app/src
     ports:
-      - "7001:80"
+      - "9901:80"
     depends_on:
       - db
-      - websockets
     restart: always
   nginx:
-    image: clover/nginx:latest
+    image: split/nginx:latest
     build: ./nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
@@ -34,15 +27,12 @@ services:
       - ./frontend/build:/frontend/build
     depends_on:
       - backend
-      - websockets
     restart: always
-  cron:
-    image: clover/cron:latest
-    build: ./cron
-    depends_on:
-      - nginx
+  websockets:
+    image: split/websockets:latest
+    build: ./websockets
+    ports:
+      - "9902:80"
     restart: always
-
-
 volumes:
   database:

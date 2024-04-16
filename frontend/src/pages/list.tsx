@@ -1,5 +1,5 @@
 import React from 'react';
-import CloverService from '../api';
+import WhereisService from '../api';
 import { GameType } from '../api';
 import {Container, Row, Col, ListGroup, Button} from 'react-bootstrap';
 import {
@@ -26,7 +26,7 @@ class List extends React.Component<ListProps, ListState> {
   ws: null|WebSocket = null;
 
   async refresh() {
-    const games = await CloverService.getGames(this.props.wordList, this.props.wordList === 'adult');
+    const games = await WhereisService.getGames(this.props.wordList, this.props.wordList === 'adult');
     this.setState({
       ...this.state,
       games: games,
@@ -59,7 +59,7 @@ class List extends React.Component<ListProps, ListState> {
   }
 
   async newGame() {
-    const newGame = await CloverService.newGame(this.props.wordList);
+    const newGame = await WhereisService.newGame(this.props.wordList);
     this.props.navigate(`/games/${newGame.id}/clues`);
   }
 

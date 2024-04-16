@@ -1,6 +1,6 @@
 import React from 'react';
 import { useEffect } from 'react';
-import CloverService from '../api';
+import WhereisService from '../api';
 import { GameType, AnswerType, CardType, GuessResponseType, BoardClientState } from '../api';
 // import * as $ from 'jquery';
 
@@ -82,7 +82,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     setTimeout(() => {
       this.setState({disablePull: false});
     }, 50);
-    return CloverService.updateClientState(this.props.id, data);
+    return WhereisService.updateClientState(this.props.id, data);
   }
 
   async pullClientState(inputClientState: null|BoardClientState = null): Promise<null> {
@@ -92,7 +92,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
 
     let clientState: null|BoardClientState = inputClientState;
     if (clientState === null) {
-      clientState = await CloverService.getClientState(this.props.id);
+      clientState = await WhereisService.getClientState(this.props.id);
     }
 
     if (clientState !== null) {
@@ -121,8 +121,8 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       return;
     }
 
-    const currentClientState = await CloverService.getClientState(this.props.id);
-    if (currentClientState === null || currentClientState.client_id === CloverService.getClientId()) {
+    const currentClientState = await WhereisService.getClientState(this.props.id);
+    if (currentClientState === null || currentClientState.client_id === WhereisService.getClientId()) {
       this.pushClientState();
     } else {
       this.pullClientState(currentClientState);
@@ -147,7 +147,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
 
     const guess = JSON.parse(JSON.stringify(this.state.guess.cardPositions.slice(0, 4)));
-    const response = await CloverService.makeGuess(
+    const response = await WhereisService.makeGuess(
       this.props.id,
       guess,
     );
@@ -161,7 +161,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   }
 
   async componentDidMount() {
-    const game = await CloverService.getGame(this.props.id);
+    const game = await WhereisService.getGame(this.props.id);
 
     const saved = localStorage.getItem(this.stateKey());
     let savedState = {};
@@ -244,7 +244,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
     const newRotation = (((this.state.guess.cardPositions[i][1] + n) % 4) + 4) % 4;
     newCardPositions[i][1] = newRotation;
-    // $.makeArray($(`.clover-card.card-${i.toString()}`)).map((card: any) => {
+    // $.makeArray($(`.split-card.card-${i.toString()}`)).map((card: any) => {
     //   card.style['transition-duration'] = '0.3s';
     //   setTimeout(() => {
     //     card.style['transition-duration'] = '0s';
@@ -326,7 +326,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   }
 
   async copyToClipboard() {
-    const text = `${this.state.game?.suggested_num_cards} card clover game by ${this.state.game?.author}\n${this.historyText().map((l) => l.join('')).join('\n')}\nPlay this puzzle at http://clover.marktai.com/games/${this.props.id}/guess`;
+    const text = `${this.state.game?.suggested_num_cards} card split game by ${this.state.game?.author}\n${this.historyText().map((l) => l.join('')).join('\n')}\nPlay this puzzle at http://split.marktai.com/games/${this.props.id}/guess`;
     this.setStateWithWrite({copiedToClipboard: true});
 
     if ('clipboard' in navigator) {
@@ -403,7 +403,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
 
 
-    let cardClasses = ['clover-card', `card-${i}`,];
+    let cardClasses = ['split-card', `card-${i}`,];
 
     let wordClasses = Array(4).fill(['word', 'shown-word']);
     for (let i = 0; i < 4; i++) {
@@ -603,7 +603,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
         </Row>
 
         <Row>
-          { this.state.game?.suggested_num_cards } card clover game by { this.state.game?.author }
+          { this.state.game?.suggested_num_cards } card split game by { this.state.game?.author }
           { this.renderHistory() }
           { this.renderShareButton() }
         </Row>

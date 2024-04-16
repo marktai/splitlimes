@@ -4,9 +4,9 @@
 
 set -euxo pipefail
 
-if [ ! -f src/clover/keys.py ]; then
-  echo "SECRET_KEY = '"$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"'" > src/clover/keys.py
-  echo $(pwd)"/src/clover/keys.py generated"
+if [ ! -f src/split/keys.py ]; then
+  echo "SECRET_KEY = '"$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"'" > src/split/keys.py
+  echo $(pwd)"/src/split/keys.py generated"
 fi
 
 while ! pg_isready -U postgres -h db -p 5432; do

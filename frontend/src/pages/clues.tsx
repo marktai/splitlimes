@@ -1,5 +1,5 @@
 import React from 'react';
-import CloverService from '../api';
+import WhereisService from '../api';
 import { GameType } from '../api';
 
 import { Container, Row, Col, Form, Button, ListGroup } from 'react-bootstrap';
@@ -36,7 +36,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
   };
 
   async submitClues() {
-    const game = await CloverService.submitClues(
+    const game = await WhereisService.submitClues(
       this.props.id,
       this.state.formData.clues,
       parseInt(this.state.formData.suggestedNumClues) + 4,
@@ -55,13 +55,13 @@ class Clues extends React.Component<CluesProps, CluesState> {
   }
 
   async componentDidMount() {
-    const game = await CloverService.getGame(this.props.id);
+    const game = await WhereisService.getGame(this.props.id);
     this.setState({
       game: game,
       formData: {
         clues: game.clues ?? ['', '', '', ''],
         suggestedNumClues: ((game.suggested_num_cards ?? 5) - 4).toString(),
-        author: game.author || (localStorage.getItem(CloverService.authorKey) ?? ''),
+        author: game.author || (localStorage.getItem(WhereisService.authorKey) ?? ''),
       },
     });
   }
@@ -69,7 +69,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
   renderCard(i: number) {
     const card = this.state.game?.answer_cards?.[i]
     return (
-      <div className="clover-card clue-card">
+      <div className="split-card clue-card">
         <div className="word left-word bold-word top-word">{card?.[0]}</div>
         <div className="word right-word top-word">{card?.[3]}</div>
         <div className="word left-word bold-word bottom-word">{card?.[1]}</div>
@@ -116,7 +116,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
             },
             gameSubmitted: false,
           });
-          localStorage.setItem(CloverService.authorKey, e.target.value);
+          localStorage.setItem(WhereisService.authorKey, e.target.value);
         }}
         placeholder="Your name"
       />
@@ -204,7 +204,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
         {
           this.state.game?.clues != null ?
             <Row>
-              <Col>Clues submitted at {this.state.game?.last_updated_time}! To guess, go to <a href={`http://clover.marktai.com/games/${this.props.id}/guess`}>http://clover.marktai.com/games/{this.props.id}/guess</a>
+              <Col>Clues submitted at {this.state.game?.last_updated_time}! To guess, go to <a href={`http://split.marktai.com/games/${this.props.id}/guess`}>http://split.marktai.com/games/{this.props.id}/guess</a>
               </Col>
             </Row>
           : null

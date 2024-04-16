@@ -86,7 +86,7 @@ export function patchJson<T>(
   return httpJson<T>(new Request(path, args));
 };
 
-export default class CloverService {
+export default class WhereisService {
   public static host = '/api';
 
   public static getGame(id: number|string): Promise<GameType> {
