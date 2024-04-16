@@ -3,10 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.css'
 import './index.css';
-import List from './pages/list';
-import Clues from './pages/clues';
-import Guess from './pages/guess';
-import Daily from './pages/daily';
+import Group from './pages/group';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -22,13 +19,7 @@ root.render(
     <BrowserRouter>
       <Link to="/">All games</Link>
       <Routes>
-        <Route index element={<List wordList="default"/>} />
-        <Route path="/adult" element={<List wordList="adult"/>} />
-        <Route path="/variant/:wordList" element={<List/>} />
-        <Route path="/games/:id/clues" element={<Clues />} />
-        <Route path="/games/:id/guess" element={<Guess />} />
-        <Route path="/games/new_daily" element={<Daily />} />
-        <Route path="/daily" element={<Daily />} />
+        <Route path="/group/:id" element={<Group />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

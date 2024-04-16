@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from dateutil import parser
 import pytz
 from django.db.models import Q
+from django.db import transaction
 from decimal import Decimal
 
 class User(models.Model):
@@ -165,12 +166,12 @@ class Expense(models.Model):
 
         return user_splits
 
+    @transaction.atomic
     def update_user_splits(self, pay_json, split_json):
         previous_user_split_expenses = {user_split.user.id: user_split for user_split in self.user_split_expense_set.all()}
         user_pay_splits = self.calculate_split(self.total_mills, pay_json, self.id)
         user_owe_splits = self.calculate_split(self.total_mills, split_json, self.id)
 
-        # TODO(mark): put all these in transaction
         count_updated = 0
         for u in set(user_pay_splits.keys()) | set(user_owe_splits.keys()):
             if u in previous_user_split_expenses:

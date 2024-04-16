@@ -1,46 +1,55 @@
 import { v4 as uuidv4 } from 'uuid';
 
-export type AnswerType = [number, number];
-export type CardType = [string, string, string, string];
-
-export type GameType = {
+export type UserSplitExpenseType = {
   id: number,
-  clues: null|Array<string>,
-  answer: [
-    AnswerType,
-    AnswerType,
-    AnswerType,
-    AnswerType,
-  ],
-  answer_cards: [
-    CardType,
-    CardType,
-    CardType,
-    CardType,
-  ],
-  suggested_num_cards: null|number,
-  suggested_possible_cards: null|Array<CardType>,
+  user: number,
+  expense: number,
+  pay_portion_mills: number,
+  owe_portion_mills: number,
+  net_portion_mills: number,
   created_time: string,
   last_updated_time: string,
-  author: string,
-  daily_set_time: null|string,
-  adult: boolean,
-  wordList: string,
 };
 
-export type BoardClientState = {
+export type ExpenseExpandedType = {
   id: number,
-  board_id: number,
+  name: string,
+  group: number,
+  total_mills: number,
+  pay_json: Object,
+  split_json: Object,
+  user_split_expense_set: Array<UserSplitExpenseType>,
   created_time: string,
-  data: any,
-  client_id: string,
+  last_updated_time: string,
 };
 
-export type GuessResponseType = Array<number>;
+export type GroupType = {
+  id: number,
+  name: string,
+  users: Array<number>,
+  created_time: string,
+  last_updated_time: string,
+}
 
-type GuessResponse = {
-  results: GuessResponseType,
-};
+export type UserType = {
+  id: number,
+  name: string,
+  email: string,
+  created_time: string,
+  last_updated_time: string,
+}
+
+export type GroupExpandedType = {
+  id: number,
+  name: string,
+  expense_set: Array<ExpenseExpandedType>,
+  users: Array<UserType>,
+  user_totals: {
+    [key: number]: number,
+  },
+  created_time: string,
+  last_updated_time: string,
+}
 
 export async function httpJson<T>(
   request: RequestInfo
@@ -86,55 +95,22 @@ export function patchJson<T>(
   return httpJson<T>(new Request(path, args));
 };
 
-export default class WhereisService {
+export default class splitService {
   public static host = '/api';
 
-  public static getGame(id: number|string): Promise<GameType> {
-    return getJson<GameType>(`${this.host}/games/${id}`);
+  public static getGroup(id: number|string): Promise<GroupExpandedType> {
+    return getJson<GroupExpandedType>(`${this.host}/groups/${id}`);
   }
 
-  public static getDailyGame(): Promise<GameType> {
-    return getJson<GameType>(`${this.host}/games/daily`);
-  }
+  // public static async makeGuess(id: number|string, guess: Array<AnswerType>): Promise<GuessResponseType> {
+  //   const body = {
+  //     guess: guess,
+  //     client_id: this.getClientId(),
+  //   }
 
-  public static async getGames(wordList: string, adult: null|boolean): Promise<Array<GameType>> {
-    const gamesResponse = await getJson<Array<GameType>>(`${this.host}/games?word_list_name=${wordList}&adult=${adult}`);
-    var sortedGames = gamesResponse.slice();
-    sortedGames.sort((a, b) => {
-      if (a.last_updated_time === b.last_updated_time) {
-        return 0;
-      } else if (a.last_updated_time < b.last_updated_time) {
-        return 1;
-      } else {
-        return -1;
-      };
-    });
-    return sortedGames;
-  }
-
-  public static newGame(wordList: string): Promise<GameType> {
-    return postJson<GameType>(`${this.host}/games`, {word_list_name: wordList});
-  }
-
-  public static submitClues(id: number|string, clues: Array<string>, suggestedNumCards: number, author: string): Promise<GameType> {
-    const body = {
-      clues: clues,
-      suggested_num_cards: suggestedNumCards,
-      author: author,
-    }
-
-    return patchJson<GameType>(`${this.host}/games/${id}`, body);
-  }
-
-  public static async makeGuess(id: number|string, guess: Array<AnswerType>): Promise<GuessResponseType> {
-    const body = {
-      guess: guess,
-      client_id: this.getClientId(),
-    }
-
-    const response = await postJson<GuessResponse>(`${this.host}/games/${id}/guess`, body);
-    return response.results;
-  }
+  //   const response = await postJson<GuessResponse>(`${this.host}/games/${id}/guess`, body);
+  //   return response.results;
+  // }
 
   public static authorKey = 'author';
   public static clientIdKey = 'client_id';
@@ -148,28 +124,9 @@ export default class WhereisService {
     }
     return `${author ?? 'anon'}-${clientId}`;
   }
-
-  public static async getClientState(id: number|string): Promise<null|BoardClientState> {
-    const response: HttpResponse<BoardClientState> = await fetch(`${this.host}/games/${id}/client_state`, { method: "GET" });
-    if (response.status === 404){
-      return null;
-    }
-    return await response.json();
-  }
-
-  public static updateClientState(id: number|string, data: any):   Promise<BoardClientState> {
-    const client_id = this.getClientId();
-
-    const body = {
-      data: data,
-      client_id: client_id,
-    }
-
-    return postJson<BoardClientState>(`${this.host}/games/${id}/client_state`, body);
-  }
 }
 
 
-interface HttpResponse<T> extends Response {
-  parsedBody?: T;
-}
+// interface HttpResponse<T> extends Response {
+//   parsedBody?: T;
+// }
