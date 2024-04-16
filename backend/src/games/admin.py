@@ -14,25 +14,18 @@ from . import models
 #         return mark_safe('<a href="%s">%s</a>' % (url, obj.board.fen))
 
 
-@admin.register(models.Board)
-class BoardAdmin(admin.ModelAdmin):
+@admin.register(models.Expense)
+class ExpenseAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(models.BoardClientState)
-class BoardClientStateAdmin(admin.ModelAdmin):
+@admin.register(models.User)
+class UserAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(models.BoardGuess)
-class BoardGuessAdmin(admin.ModelAdmin):
+@admin.register(models.UserSplitExpense)
+class UserSplitExpenseAdmin(admin.ModelAdmin):
     pass
-    # fields = ('fen', 'turn_count', 'game_link', 'created_time', 'last_updated_time')
-    # readonly_fields = ('game_link', 'created_time', 'last_updated_time')
 
-    # def game_link(self, obj):
-    #     url = '../../../game/%d/change' % obj.game.id
-    #     return mark_safe('<a href="%s">%s</a>' % (url, obj.game))
-
-
-@admin.register(models.WordList)
-class WordListAdmin(admin.ModelAdmin):
+@admin.register(models.Group)
+class GroupAdmin(admin.ModelAdmin):
     pass

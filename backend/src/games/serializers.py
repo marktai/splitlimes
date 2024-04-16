@@ -2,23 +2,39 @@ from rest_framework import serializers
 
 from . import models
 
-class BoardSerializer(serializers.ModelSerializer):
+class UserSplitExpenseSerializer(serializers.ModelSerializer):
+    net_portion_mills = serializers.IntegerField()
+
     class Meta:
-        model = models.Board
-        fields = ('id', 'author', 'clues', 'cards', 'answer', 'answer_from_suggested_cards', 'answer_cards', 'suggested_num_cards', 'suggested_possible_cards', 'created_time', 'last_updated_time', 'daily_set_time', 'adult',)
-        read_only_fields = ('id', 'answer_from_suggested_cards', 'answer_cards', 'suggested_possible_cards', 'created_time', 'last_updated_time', 'daily_set_time', 'adult',)
+        model = models.UserSplitExpense
+        fields = '__all__'
 
-# class GameSerializer(serializers.ModelSerializer):
-#     board = BoardSerializer()
-#     turn_count = serializers.IntegerField()
-
-#     class Meta:
-#         model = models.Game
-#         fields = ('id', 'white_player', 'black_player', 'board', 'created_time', 'last_updated_time', 'turn_count')
-#         read_only_fields = ('id', 'turn_count')
-
-class BoardClientStateSerializer(serializers.ModelSerializer):
+class ExpenseExpandedSerializer(serializers.ModelSerializer):
+    user_split_expense_set = UserSplitExpenseSerializer(many=True, read_only=True)
     class Meta:
-        model = models.BoardClientState
-        fields = ('id', 'board_id', 'created_time', 'data', 'client_id')
-        read_only_fields = ('id', 'board_id', 'created_time', 'data', 'client_id')
+        model = models.Expense
+        fields = '__all__'
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Group
+        fields = '__all__'
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.User
+        fields = '__all__'
+
+class UserExpandedSerializer(serializers.ModelSerializer):
+    group_set = GroupSerializer(many=True, read_only=True)
+    class Meta:
+        model = models.User
+        fields = '__all__'
+
+class GroupExpandedSerializer(serializers.ModelSerializer):
+    expense_set = ExpenseExpandedSerializer(many=True, read_only=True)
+    users = UserSerializer(many=True, read_only=True)
+    user_totals = serializers.DictField(child=serializers.IntegerField())
+    class Meta:
+        model = models.Group
+        fields = '__all__'
