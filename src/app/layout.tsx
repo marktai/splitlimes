@@ -122,7 +122,16 @@ export default function RootLayout({
                 </Link>
               </div>
               <div className="flex flex-col space-y a--no-underline-text-white">
-                <span>Donate to <a href='https://charity.marktai.com' target="_blank" rel="noopener">charity.marktai.com!</a></span>
+                <span>
+                  Donate to{' '}
+                  <a
+                    href="https://charity.marktai.com"
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    charity.marktai.com!
+                  </a>
+                </span>
                 <span>
                   Built by{' '}
                   <a href="https://scastiel.dev" target="_blank" rel="noopener">
@@ -135,7 +144,8 @@ export default function RootLayout({
                     rel="noopener"
                   >
                     contributors
-                  </a>, and shamelessly stolen by Mark Tai
+                  </a>
+                  , and shamelessly stolen by Mark Tai
                 </span>
               </div>
             </div>

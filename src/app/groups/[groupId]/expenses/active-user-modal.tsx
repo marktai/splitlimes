@@ -21,10 +21,8 @@ import {
   Form,
   FormControl,
   FormDescription,
-  FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form'
 import {
   Select,
@@ -33,15 +31,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { getGroup } from '@/lib/api'
 import { useMediaQuery } from '@/lib/hooks'
+import { GroupFormValues, groupFormSchema } from '@/lib/schemas'
 import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { ComponentProps, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { GroupFormValues, groupFormSchema } from '@/lib/schemas'
 
 type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
@@ -133,15 +129,15 @@ function ActiveUserForm({
           currency: '',
           participants: [{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }],
         },
-  });
+  })
 
   const updateActiveUser = () => {
     if (!selected) return
-    console.log(selected);
+    console.log(selected)
     if (group?.id) {
       const participant = group.participants.find((p) => p.name === selected)
-      console.log(group.participants);
-      console.log(participant);
+      console.log(group.participants)
+      console.log(participant)
       if (participant?.id) {
         localStorage.setItem(`${group.id}-activeUser`, participant.id)
       } else {
@@ -152,7 +148,6 @@ function ActiveUserForm({
     }
   }
   return (
-    
     <Form {...form}>
       <form
         className={cn('grid items-start gap-4', className)}
@@ -183,17 +178,18 @@ function ActiveUserForm({
         <FormItem>
           <FormLabel>Active user</FormLabel>
           <FormControl>
-            <Select onValueChange={setSelected}
-            >
+            <Select onValueChange={setSelected}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a participant" />
               </SelectTrigger>
               <SelectContent>
                 {[
-                  { name: 'None' }, 
+                  { name: 'None' },
                   ...group.participants
                     .filter((item) => item.name.length > 0)
-                    .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0 )
+                    .sort((a, b) =>
+                      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+                    ),
                 ].map(({ name }) => (
                   <SelectItem key={name} value={name}>
                     {name}
@@ -206,7 +202,9 @@ function ActiveUserForm({
             User used as default for paying expenses.
           </FormDescription>
         </FormItem>
-        <Button type="submit" onClick={updateActiveUser}>Save changes</Button>
+        <Button type="submit" onClick={updateActiveUser}>
+          Save changes
+        </Button>
       </form>
     </Form>
   )
