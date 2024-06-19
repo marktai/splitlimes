@@ -81,8 +81,9 @@ export default function RootLayout({
                 <Image
                   src="/limes-512x512.png"
                   className="m-1 h-auto w-auto"
-                  width={(35 * 522) / 180}
-                  height={35}
+                  // width={(35 * 522) / 180}
+                  width={24}
+                  height={24}
                   alt="splitlimes"
                 />
               </h1>
