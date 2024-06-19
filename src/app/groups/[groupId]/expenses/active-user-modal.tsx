@@ -17,12 +17,31 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { getGroup } from '@/lib/api'
 import { useMediaQuery } from '@/lib/hooks'
 import { cn } from '@/lib/utils'
 import { ComponentProps, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { GroupFormValues, groupFormSchema } from '@/lib/schemas'
 
 type Props = {
   group: NonNullable<Awaited<ReturnType<typeof getGroup>>>
@@ -101,34 +120,94 @@ function ActiveUserForm({
 }: ComponentProps<'form'> & { group: Props['group']; close: () => void }) {
   const [selected, setSelected] = useState('None')
 
-  return (
-    <form
-      className={cn('grid items-start gap-4', className)}
-      onSubmit={(event) => {
-        event.preventDefault()
+  const form = useForm<GroupFormValues>({
+    resolver: zodResolver(groupFormSchema),
+    defaultValues: group
+      ? {
+          name: group.name,
+          currency: group.currency,
+          participants: group.participants,
+        }
+      : {
+          name: '',
+          currency: '',
+          participants: [{ name: 'John' }, { name: 'Jane' }, { name: 'Jack' }],
+        },
+  });
+
+  const updateActiveUser = () => {
+    if (!selected) return
+    console.log(selected);
+    if (group?.id) {
+      const participant = group.participants.find((p) => p.name === selected)
+      console.log(group.participants);
+      console.log(participant);
+      if (participant?.id) {
+        localStorage.setItem(`${group.id}-activeUser`, participant.id)
+      } else {
         localStorage.setItem(`${group.id}-activeUser`, selected)
-        close()
-      }}
-    >
-      <RadioGroup defaultValue="none" onValueChange={setSelected}>
-        <div className="flex flex-col gap-4 my-4">
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="none" id="none" />
-            <Label htmlFor="none" className="italic font-normal flex-1">
-              I don’t want to select anyone
-            </Label>
-          </div>
-          {group.participants.map((participant) => (
-            <div key={participant.id} className="flex items-center space-x-2">
-              <RadioGroupItem value={participant.id} id={participant.id} />
-              <Label htmlFor={participant.id} className="flex-1">
-                {participant.name}
+      }
+    } else {
+      localStorage.setItem('newGroup-activeUser', selected)
+    }
+  }
+  return (
+    
+    <Form {...form}>
+      <form
+        className={cn('grid items-start gap-4', className)}
+        onSubmit={(event) => {
+          event.preventDefault()
+          // localStorage.setItem(`${group.id}-activeUser`, selected)
+          close()
+        }}
+      >
+        {/* <RadioGroup defaultValue="none" onValueChange={setSelected}>
+          <div className="flex flex-col gap-4 my-4">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="none" id="none" />
+              <Label htmlFor="none" className="italic font-normal flex-1">
+                I don’t want to select anyone
               </Label>
             </div>
-          ))}
-        </div>
-      </RadioGroup>
-      <Button type="submit">Save changes</Button>
-    </form>
+            {group.participants.map((participant) => (
+              <div key={participant.id} className="flex items-center space-x-2">
+                <RadioGroupItem value={participant.id} id={participant.id} />
+                <Label htmlFor={participant.id} className="flex-1">
+                  {participant.name}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </RadioGroup> */}
+        <FormItem>
+          <FormLabel>Active user</FormLabel>
+          <FormControl>
+            <Select onValueChange={setSelected}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a participant" />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  { name: 'None' }, 
+                  ...group.participants
+                    .filter((item) => item.name.length > 0)
+                    .sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0 )
+                ].map(({ name }) => (
+                  <SelectItem key={name} value={name}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormControl>
+          <FormDescription>
+            User used as default for paying expenses.
+          </FormDescription>
+        </FormItem>
+        <Button type="submit" onClick={updateActiveUser}>Save changes</Button>
+      </form>
+    </Form>
   )
 }
