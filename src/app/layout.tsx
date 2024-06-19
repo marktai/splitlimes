@@ -121,7 +121,7 @@ export default function RootLayout({
                 </Link>
               </div>
               <div className="flex flex-col space-y a--no-underline-text-white">
-                <span>Made in Montréal, Québec 🇨🇦</span>
+                <span>Donate to <a href='https://charity.marktai.com' target="_blank" rel="noopener">charity.marktai.com!</a></span>
                 <span>
                   Built by{' '}
                   <a href="https://scastiel.dev" target="_blank" rel="noopener">
