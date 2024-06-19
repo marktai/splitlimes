@@ -14,15 +14,15 @@ import './globals.css'
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_BASE_URL),
   title: {
-    default: 'Spliit · Share Expenses with Friends & Family',
-    template: '%s · Spliit',
+    default: 'splitlimes · Share Expenses with Friends & Family',
+    template: '%s · splitlimes',
   },
   description:
-    'Spliit is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
+    'splitlimes is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
   openGraph: {
-    title: 'Spliit · Share Expenses with Friends & Family',
+    title: 'splitlimes · Share Expenses with Friends & Family',
     description:
-      'Spliit is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
+      'splitlimes is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
     images: `/banner.png`,
     type: 'website',
     url: '/',
@@ -32,23 +32,18 @@ export const metadata: Metadata = {
     creator: '@scastiel',
     site: '@scastiel',
     images: `/banner.png`,
-    title: 'Spliit · Share Expenses with Friends & Family',
+    title: 'splitlimes · Share Expenses with Friends & Family',
     description:
-      'Spliit is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
+      'splitlimes is a minimalist web application to share expenses with friends and family. No ads, no account, no problem.',
   },
   appleWebApp: {
     capable: true,
-    title: 'Spliit',
+    title: 'splitlimes',
   },
-  applicationName: 'Spliit',
+  applicationName: 'splitlimes',
   icons: [
     {
-      url: '/android-chrome-192x192.png',
-      sizes: '192x192',
-      type: 'image/png',
-    },
-    {
-      url: '/android-chrome-512x512.png',
+      url: '/limes-512x512.png',
       sizes: '512x512',
       type: 'image/png',
     },
@@ -66,7 +61,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <ApplePwaSplash icon="/logo-with-text.png" color="#027756" />
+      <ApplePwaSplash icon="/limes-512x512.png" color="#027756" />
       <body className="pt-16 min-h-[100dvh] flex flex-col items-stretch bg-slate-50 bg-opacity-30 dark:bg-background">
         <ThemeProvider
           attribute="class"
@@ -84,11 +79,11 @@ export default function RootLayout({
             >
               <h1>
                 <Image
-                  src="/logo-with-text.png"
+                  src="/limes-512x512.png"
                   className="m-1 h-auto w-auto"
                   width={(35 * 522) / 180}
                   height={35}
-                  alt="Spliit"
+                  alt="splitlimes"
                 />
               </h1>
             </Link>
@@ -117,11 +112,11 @@ export default function RootLayout({
               <div className="sm:text-lg font-semibold text-base flex space-x-2 items-center">
                 <Link className="flex items-center gap-2" href="/">
                   <Image
-                    src="/logo-with-text.png"
+                    src="/limes-512x512.png"
                     className="m-1 h-auto w-auto"
                     width={(35 * 522) / 180}
                     height={35}
-                    alt="Spliit"
+                    alt="splitlimes"
                   />
                 </Link>
               </div>
@@ -134,12 +129,12 @@ export default function RootLayout({
                   </a>{' '}
                   and{' '}
                   <a
-                    href="https://github.com/spliit-app/spliit/graphs/contributors"
+                    href="https://github.com/spliit/spliit/graphs/contributors"
                     target="_blank"
                     rel="noopener"
                   >
                     contributors
-                  </a>
+                  </a>, and shamelessly stolen by Mark Tai
                 </span>
               </div>
             </div>

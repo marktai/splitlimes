@@ -15,15 +15,15 @@ export default function HomePage() {
             & <strong>Family</strong>
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Welcome to your new <strong>Spliit</strong> instance! <br />
-            Customize this page by editing <em>src/app/page.tsx</em>.
+            Hey thanks for using Mark's shameless copy (AKA fork) of spliit.app. I'll be working on some new features
+            over the next couple of months, so if you have any suggestions, please let me know!
           </p>
           <div className="flex gap-2">
             <Button asChild>
               <Link href="/groups">Go to groups</Link>
             </Button>
             <Button asChild variant="secondary">
-              <Link href="https://github.com/spliit-app/spliit">
+              <Link href="https://github.com/marktai/splitlimes">
                 <Github className="w-4 h-4 mr-2" />
                 GitHub
               </Link>
