@@ -2,7 +2,7 @@ services:
   app:
     image: spliit2:latest
     ports:
-      - 3000:3000
+      - 13000:3000
     env_file:
       - container.env
     depends_on:
@@ -12,7 +12,7 @@ services:
   db:
     image: postgres:latest
     ports:
-      - 5432:5432
+      - 15432:5432
     env_file:
       - container.env
     volumes:

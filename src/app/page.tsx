@@ -15,7 +15,7 @@ export default function HomePage() {
             & <strong>Family</strong>
           </h1>
           <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-            Hey thanks for using Mark's shameless copy (AKA fork) of spliit.app. I'll be working on some new features
+            Hey thanks for using Mark&lsquo;s shameless copy (AKA fork) of spliit.app. I&lsquo;ll be working on some new features
             over the next couple of months, so if you have any suggestions, please let me know!
           </p>
           <div className="flex gap-2">
