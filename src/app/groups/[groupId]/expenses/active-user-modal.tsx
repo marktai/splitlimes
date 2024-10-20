@@ -153,28 +153,9 @@ function ActiveUserForm({
         className={cn('grid items-start gap-4', className)}
         onSubmit={(event) => {
           event.preventDefault()
-          // localStorage.setItem(`${group.id}-activeUser`, selected)
           close()
         }}
       >
-        {/* <RadioGroup defaultValue="none" onValueChange={setSelected}>
-          <div className="flex flex-col gap-4 my-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="none" id="none" />
-              <Label htmlFor="none" className="italic font-normal flex-1">
-                I don’t want to select anyone
-              </Label>
-            </div>
-            {group.participants.map((participant) => (
-              <div key={participant.id} className="flex items-center space-x-2">
-                <RadioGroupItem value={participant.id} id={participant.id} />
-                <Label htmlFor={participant.id} className="flex-1">
-                  {participant.name}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </RadioGroup> */}
         <FormItem>
           <FormLabel>Active user</FormLabel>
           <FormControl>
