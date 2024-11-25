@@ -1,7 +1,9 @@
 import React from 'react';
 import splitService from '../api';
-import { GroupType, GroupExpandedType } from '../api';
+import ExpenseModal from './expenseModal';
+import { GroupType, GroupExpandedType, millsToDollars } from '../api';
 import { Container, Row, Col, ListGroup, Button } from 'react-bootstrap';
+import { useState } from 'react';
 import {
   Link,
   useNavigate,
@@ -14,11 +16,18 @@ type GroupProps = {
 
 type GroupState = {
   group: null|GroupExpandedType,
+  showExpense: boolean,
+  expenseId: null|number|string,
 };
 
+
+// TODO(mark): use maps instead of finds for expenses and users
+// TODO(mark): link to expense in URL to allow linking expenses
 class Group extends React.Component<GroupProps, GroupState> {
   state: GroupState = {
     group: null,
+    showExpense: false,
+    expenseId: null,
   };
   ws: null|WebSocket = null;
 
@@ -45,6 +54,21 @@ class Group extends React.Component<GroupProps, GroupState> {
     }
   }
 
+  openExpense = (id: number|string) => this.setState({...this.state, showExpense: true, expenseId: id});
+  closeExpense = () => this.setState({...this.state, showExpense: false});
+
+  modal() {
+    const expense = this.state.group?.expense_set?.find((e) => e.id === this.state.expenseId);
+    if (!expense) {
+      return <div></div>;
+    } else {
+      return (
+        <ExpenseModal expense={expense} show={this.state.showExpense} hideFunction={this.closeExpense} />
+      );
+    }
+  };
+
+
   // async componentDidUpdate(prevProps: GroupProps) {
   //   if (prevProps.wordGroup !== this.props.wordGroup) {
   //     this.setState({
@@ -70,10 +94,20 @@ class Group extends React.Component<GroupProps, GroupState> {
 
   render() {
     const expenses = this.state.group?.expense_set?.map((expense) => {
-        let text = `${expense.name} for ${expense.total_mills/1000}`;
-        return <ListGroup.Item key={expense.id}>
-          {text}
-        </ListGroup.Item>;
+      return <ListGroup.Item key={expense.id} onClick={() => {this.openExpense(expense.id)}}>
+        <Row>
+          <Col xs={2}>
+            { (new Date(expense.expense_date)).toLocaleString('default', { month: 'short', day: "numeric", }) }
+          </Col>
+          <Col xs={6}>
+            <Button variant="link">{expense.name}</Button>
+          </Col>
+          <Col xs={2}>
+            {millsToDollars(expense.total_mills)}
+          </Col>
+        </Row>
+        
+      </ListGroup.Item>;
     });
 
     return (
@@ -118,6 +152,7 @@ class Group extends React.Component<GroupProps, GroupState> {
             </div>
           </Col>
         </Row>
+        { this.modal() }
       </Container>
     );
   }

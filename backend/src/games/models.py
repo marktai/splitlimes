@@ -5,7 +5,7 @@ from django.db import models, transaction
 from django_jsonform.models.fields import ArrayField
 
 from rest_framework import exceptions as drf_exceptions
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil import parser
 import pytz
 from django.db.models import Q
@@ -48,9 +48,12 @@ class Expense(models.Model):
     total_mills = models.IntegerField()
     pay_json = models.JSONField(null=True) # same format as split_json
     split_json = models.JSONField()
+    expense_date = models.DateField(default=date.today)
 
     created_time = models.DateTimeField(auto_now_add=True)
     last_updated_time = models.DateTimeField(auto_now=True)
+    is_reimbursement = models.BooleanField(default=False)
+    notes = models.CharField(max_length=1000)
 
     # split_json types
     # TODO(mark): JSON schemas
@@ -195,3 +198,22 @@ class UserSplitExpense(models.Model):
     @property
     def net_portion_mills(self):
         return self.owe_portion_mills - self.pay_portion_mills
+
+class Activity(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    created_time = models.DateTimeField(auto_now_add=True)
+    # activity_type
+    user = models.ForeignKey(User, on_delete=models.SET_NULL)
+    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL)
+    data = models.JSONField(null=True)
+
+    class ActivityType(models.TextChoices):
+        UPDATE_GROUP = 'UG'
+        CREATE_EXPENSE = 'CE'
+        UPDATE_EXPENSE = 'UE'
+        DELETE_EXPENSE = 'DE'
+    
+    activity_type = models.CharField(
+        max_length=2,
+        choices=YearInSchool.choices,
+    )

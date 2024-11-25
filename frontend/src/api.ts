@@ -19,6 +19,7 @@ export type ExpenseExpandedType = {
   pay_json: Object,
   split_json: Object,
   user_split_expense_set: Array<UserSplitExpenseType>,
+  expense_date: string,
   created_time: string,
   last_updated_time: string,
 };
@@ -93,6 +94,10 @@ export function patchJson<T>(
   }
 ): Promise<T>  {
   return httpJson<T>(new Request(path, args));
+};
+
+export function millsToDollars(mills: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.round(mills / 1000) * 1.0 / 100);
 };
 
 export default class splitService {
