@@ -39,7 +39,7 @@ export default async function ActivityPage({
           <ActivityList
             {...{
               groupId,
-              participants: group.participants,
+              participants: group.users,
               expenses,
               activities,
             }}

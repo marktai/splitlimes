@@ -20,14 +20,6 @@ export function ReimbursementList({
   currency,
   groupId,
 }: Props) {
-  if (reimbursements.length === 0) {
-    return (
-      <p className="px-6 text-sm pb-6">
-        It looks like your group doesn’t need any reimbursement 😁
-      </p>
-    )
-  }
-  
   const [activeUser, setActiveUser] = useState<string | null>(null)
   useEffect(() => {
     if (activeUser === null) {
@@ -38,6 +30,13 @@ export function ReimbursementList({
     }
   }, [activeUser, participants, groupId])
 
+  if (reimbursements.length === 0) {
+    return (
+      <p className="px-6 text-sm pb-6">
+        It looks like your group doesn’t need any reimbursement 😁
+      </p>
+    )
+  }
   console.log(reimbursements)
   console.log(activeUser)
 

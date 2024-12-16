@@ -123,7 +123,7 @@ async function Expenses({ group }: Props) {
       expenseCount={expenseCount}
       groupId={group.id}
       currency={group.currency}
-      participants={group.participants}
+      participants={group.users}
     />
   )
 }

@@ -9,6 +9,24 @@ services:
       - ./frontend/build:/app/build
     ports:
       - "9903:3000"
+    env_file:
+      - ./frontend/container.env
+    depends_on:
+      - dbfrontend
+    restart: always
+  dbfrontend:
+    image: postgres:latest
+    ports:
+      - 15432:5432
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - ./frontend/postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: always
   nginx:
     volumes:

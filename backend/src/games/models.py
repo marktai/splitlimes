@@ -12,19 +12,25 @@ from django.db.models import Q
 from django.db import transaction
 from decimal import Decimal
 
+# TODO(mark): implement currency conversion: https://fxratesapi.com/ and db caching
+
 class User(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(max_length=100)
+    venmo = models.CharField(max_length=100, null=True)
 
     created_time = models.DateTimeField(auto_now_add=True)
     last_updated_time = models.DateTimeField(auto_now=True)
 
 class Group(models.Model):
     name = models.CharField(max_length=100)
+    # TODO(mark): implement unique slugs
+    name_slug = models.CharField(max_length=20)
     users = models.ManyToManyField(User)
 
     created_time = models.DateTimeField(auto_now_add=True)
     last_updated_time = models.DateTimeField(auto_now=True)
+    default_currency = models.CharField(max_length=3)
 
     @property
     def user_totals(self):
@@ -39,9 +45,18 @@ class Group(models.Model):
                 user_totals[user_split_expense.user.id] += user_split_expense.net_portion_mills
 
         return user_totals
-    
-    # TODO(mark): property of last expense update time
 
+    @property
+    # TODO(mark)
+    def currencies(self):
+        return []
+
+    # TODO(mark): property of last expense update time
+    @property
+    def last_activity_time(self):
+        return last_updated_time
+
+# TODO(mark): update to be in localized currency
 class Expense(models.Model):
     name = models.CharField(max_length=200)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
@@ -53,7 +68,9 @@ class Expense(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     last_updated_time = models.DateTimeField(auto_now=True)
     is_reimbursement = models.BooleanField(default=False)
+    category = models.CharField(max_length=100)
     notes = models.CharField(max_length=1000)
+    currency = models.CharField(max_length=3)
 
     # split_json types
     # TODO(mark): JSON schemas
@@ -141,7 +158,7 @@ class Expense(models.Model):
             default = (total_mills - total_adjustment) // num_users
             user_splits = {u: int(default + v) for u, v in split_json['users'].items()}
         elif split_json['type'] == 'itemized_expenses':
-            # TODO
+            # TODO(mark): implement
             pass
 
         if user_splits is None:
@@ -169,6 +186,7 @@ class Expense(models.Model):
 
         return user_splits
 
+    # TODO(mark): apply on save
     @transaction.atomic
     def update_user_splits(self, pay_json, split_json):
         previous_user_split_expenses = {user_split.user.id: user_split for user_split in self.user_split_expense_set.all()}
@@ -185,7 +203,8 @@ class Expense(models.Model):
             else:
                 UserSplitExpense(user_id=u, expense=self, pay_portion_mills=user_pay_splits.get(u, 0), owe_portion_mills=user_owe_splits.get(u, 0)).save()
         return count_updated
-        
+    
+# derived data of expenses eagerly split by user
 class UserSplitExpense(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     expense = models.ForeignKey(Expense, on_delete=models.CASCADE, related_name='user_split_expense_set')
@@ -199,12 +218,13 @@ class UserSplitExpense(models.Model):
     def net_portion_mills(self):
         return self.owe_portion_mills - self.pay_portion_mills
 
+# TODO(add on all views)
 class Activity(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     created_time = models.DateTimeField(auto_now_add=True)
     # activity_type
-    user = models.ForeignKey(User, on_delete=models.SET_NULL)
-    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, null=True)
     data = models.JSONField(null=True)
 
     class ActivityType(models.TextChoices):
@@ -215,5 +235,5 @@ class Activity(models.Model):
     
     activity_type = models.CharField(
         max_length=2,
-        choices=YearInSchool.choices,
+        choices=ActivityType.choices,
     )

@@ -122,7 +122,7 @@ function ActiveUserForm({
       ? {
           name: group.name,
           currency: group.currency,
-          participants: group.participants,
+          participants: group.users,
         }
       : {
           name: '',
@@ -135,8 +135,8 @@ function ActiveUserForm({
     if (!selected) return
     console.log(selected)
     if (group?.id) {
-      const participant = group.participants.find((p) => p.name === selected)
-      console.log(group.participants)
+      const participant = group.users.find((p) => p.name === selected)
+      console.log(group.users)
       console.log(participant)
       if (participant?.id) {
         localStorage.setItem(`${group.id}-activeUser`, participant.id)
@@ -166,7 +166,7 @@ function ActiveUserForm({
               <SelectContent>
                 {[
                   { name: 'None' },
-                  ...group.participants
+                  ...group.users
                     .filter((item) => item.name.length > 0)
                     .sort((a, b) =>
                       a.name < b.name ? -1 : a.name > b.name ? 1 : 0,

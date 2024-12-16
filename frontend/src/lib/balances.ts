@@ -19,7 +19,7 @@ export function getBalances(
   const balances: Balances = {}
 
   for (const expense of expenses) {
-    const paidBy = expense.paidBy.id
+    const paidBy = expense.paidBy
     const paidFors = expense.paidFor
 
     if (!balances[paidBy]) balances[paidBy] = { paid: 0, paidFor: 0, total: 0 }
@@ -31,8 +31,8 @@ export function getBalances(
     )
     let remaining = expense.amount
     paidFors.forEach((paidFor, index) => {
-      if (!balances[paidFor.participant.id])
-        balances[paidFor.participant.id] = { paid: 0, paidFor: 0, total: 0 }
+      if (!balances[paidFor.participant])
+        balances[paidFor.participant] = { paid: 0, paidFor: 0, total: 0 }
 
       const isLast = index === paidFors.length - 1
 
@@ -47,7 +47,7 @@ export function getBalances(
         ? remaining
         : (expense.amount * shares) / totalShares
       remaining -= dividedAmount
-      balances[paidFor.participant.id].paidFor += dividedAmount
+      balances[paidFor.participant].paidFor += dividedAmount
     })
   }
 

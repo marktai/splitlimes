@@ -18,12 +18,52 @@ from django.conf import settings
 from django.db.models import Q
 from django.shortcuts import redirect
 from django.http import Http404
-
+from django.utils.text import slugify
 
 from .serializers import *
 from .models import *
 
 import requests
+
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserExpandedSerializer
+    queryset = User.objects.all()
+
+class GroupViewSet(viewsets.ModelViewSet):
+    serializer_class = GroupExpandedSerializer
+    queryset = Group.objects.all()
+    
+    # allow slugs instead of ids
+    def get_object(self):
+        if self.kwargs['pk'].isdigit():
+            obj = self.queryset.get(pk = self.kwargs['pk'])
+        else:
+            obj = self.queryset.get(name_slug = self.kwargs['pk'])
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+    def create(self, request):
+        fields = {
+            "name": request.data["name"],
+            "default_currency": request.data["default_currency"],
+        }
+
+        slug_suffix = ""
+        while True:
+            name_slug = slugify(fields["name"]) + slug_suffix
+            if Group.objects.filter(name_slug=name_slug).exists():
+                # unary counting :D
+                slug_suffix += "_1"
+            else:
+                break
+
+        fields["name_slug"] = name_slug
+
+        new_group = Group(**fields)
+        new_group.save()
+
+        return Response(self.serializer_class(new_group).data)
+
 
 class ExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = ExpenseExpandedSerializer
@@ -43,16 +83,19 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
         new_expense.update_user_splits(new_expense.pay_json, new_expense.split_json)
 
-        return Response(ExpenseExpandedSerializer(new_expense).data)
-
-class UserViewSet(viewsets.ModelViewSet):
-    serializer_class = UserExpandedSerializer
-    queryset = User.objects.all()
-
-class GroupViewSet(viewsets.ModelViewSet):
-    serializer_class = GroupExpandedSerializer
-    queryset = Group.objects.all()
+        return Response(self.serializer_class(new_expense).data)
 
 class UserSplitExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = UserSplitExpenseSerializer
     queryset = UserSplitExpense.objects.all()
+
+
+class AddUserToGroup(APIView):
+    def post(self, request, *args, **kwargs):
+        group = get_object_or_404(Group, id=kwargs['group_id'])
+        user = get_object_or_404(User, id=request.data['user_id'])
+
+        group.users.add(user)
+        group.save()
+
+        return Response(GroupExpandedSerializer(group).data)

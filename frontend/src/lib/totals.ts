@@ -16,7 +16,7 @@ export function getTotalActiveUserPaidFor(
 ): number {
   return expenses.reduce(
     (total, expense) =>
-      expense.paidBy.id === activeUserId && !expense.isReimbursement
+      expense.paidBy === activeUserId && !expense.isReimbursement
         ? total + expense.amount
         : total,
     0,
@@ -34,7 +34,7 @@ export function getTotalActiveUserShare(
 
     const paidFors = expense.paidFor
     const userPaidFor = paidFors.find(
-      (paidFor) => paidFor.participant.id === activeUserId,
+      (paidFor) => paidFor.participant === activeUserId,
     )
 
     if (!userPaidFor) {

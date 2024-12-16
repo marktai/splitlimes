@@ -7,9 +7,9 @@ services:
     build: .
     image: split/backend:latest
     volumes:
-      - .:/code
+      - ./src:/app/src
     ports:
-      - "8000:8000"
+      - "8000:80"
     depends_on:
       - db
 

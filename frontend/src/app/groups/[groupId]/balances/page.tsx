@@ -46,7 +46,7 @@ export default async function GroupPage({
         <CardContent>
           <BalancesList
             balances={publicBalances}
-            participants={group.participants}
+            participants={group.users}
             currency={group.currency}
           />
         </CardContent>
@@ -62,7 +62,7 @@ export default async function GroupPage({
         <CardContent className="p-0">
           <ReimbursementList
             reimbursements={reimbursements}
-            participants={group.participants}
+            participants={group.users}
             currency={group.currency}
             groupId={groupId}
           />

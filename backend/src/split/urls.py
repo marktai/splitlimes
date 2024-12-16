@@ -35,7 +35,7 @@ router.register('user_split_expenses', views.UserSplitExpenseViewSet, basename='
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # re_path('games/(?P<game_id>[0-9]+)/guess', views.MakeGuessView.as_view(), name='make_guess'),
+    re_path('groups/(?P<group_id>[0-9]+)/add_user', views.AddUserToGroup.as_view(), name='add_user'),
     # re_path('games/(?P<game_id>[0-9]+)/client_state', views.BoardClientStateView.as_view(), name='make_guess'),
     # path('games/daily', views.DailyGameView.as_view(), name='daily'),
     path('', include(router.urls)),

@@ -29,23 +29,23 @@ export function ExpenseCard({ expense, currency, groupId }: Props) {
         router.push(`/groups/${groupId}/expenses/${expense.id}/edit`)
       }}
     >
-      <CategoryIcon
+      {/* <CategoryIcon
         category={expense.category}
         className="w-4 h-4 mr-2 mt-0.5 text-muted-foreground"
-      />
+      /> */}
       <div className="flex-1">
         <div className={cn('mb-1', expense.isReimbursement && 'italic')}>
           {expense.title}
         </div>
         <div className="text-xs text-muted-foreground">
           {expense.amount > 0 ? 'Paid by ' : 'Received by '}
-          <strong>{expense.paidBy.name}</strong> for{' '}
+          {/* <strong>{expense.paidBy.name}</strong> for{' '}
           {expense.paidFor.map((paidFor, index) => (
             <Fragment key={index}>
               {index !== 0 && <>, </>}
               <strong>{paidFor.participant.name}</strong>
             </Fragment>
-          ))}
+          ))} */}
         </div>
         <div className="text-xs text-muted-foreground">
           <ActiveUserBalance {...{ groupId, currency, expense }} />

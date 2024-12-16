@@ -59,7 +59,7 @@ export function GroupForm({
       ? {
           name: group.name,
           currency: group.currency,
-          participants: group.participants,
+          participants: group.users,
         }
       : {
           name: '',
@@ -87,7 +87,7 @@ export function GroupForm({
   const updateActiveUser = () => {
     if (!activeUser) return
     if (group?.id) {
-      const participant = group.participants.find((p) => p.name === activeUser)
+      const participant = group.users.find((p) => p.name === activeUser)
       if (participant?.id) {
         localStorage.setItem(`${group.id}-activeUser`, participant.id)
       } else {
@@ -104,7 +104,7 @@ export function GroupForm({
         onSubmit={form.handleSubmit(async (values) => {
           await onSubmit(
             values,
-            group?.participants.find((p) => p.name === activeUser)?.id ??
+            group?.users.find((p) => p.name === activeUser)?.id ??
               undefined,
           )
         })}

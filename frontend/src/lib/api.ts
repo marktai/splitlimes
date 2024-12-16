@@ -1,128 +1,200 @@
 import { prisma } from '@/lib/prisma'
 import { ExpenseFormValues, GroupFormValues } from '@/lib/schemas'
-import { ActivityType, Expense } from '@prisma/client'
+import { ActivityType, Expense, Group, Participant, Category, Activity, ExpensePaidFor, SplitMode } from '@prisma/client'
 import { nanoid } from 'nanoid'
+import axios from 'axios'
 
 export function randomId() {
   return nanoid()
 }
 
-export async function createGroup(groupFormValues: GroupFormValues) {
-  return prisma.group.create({
-    data: {
-      id: randomId(),
+const api_url = 'http://127.0.0.1:9901'
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  venmo: string;
+  groupId: string; // TODO(mark): deprecate
+}
+
+type GroupWithUsers = {
+  id: string;
+  name: string;
+  name_slug: string;
+  currency: string;
+  created_time: Date;
+  createdAt: Date;
+  users: User[];
+  
+}
+
+type ExpenseRich = {
+  id: string;
+  expenseDate: Date;
+  title: string;
+  categoryId: number;
+  amount: number;
+  paidById: string;
+  groupId: string;
+  isReimbursement: boolean;
+  splitMode: SplitMode;
+  createdAt: Date;
+  notes: string | null;
+  paidBy: string;
+  paidFor: {
+    participant: string,
+    shares: number,
+  }[]
+}
+
+// get nullable group with participants
+export async function getGroup(groupId: string): Promise<GroupWithUsers> {
+  return (await axios.get(`${api_url}/groups/${groupId}`)).data
+}
+
+export async function getGroups(groupIds: string[]): Promise<GroupWithUsers[]> {
+  return (await axios.get(`${api_url}/groups/?ids=${groupIds.join(',')}`)).data
+  // return (
+  //   await prisma.group.findMany({
+  //     where: { id: { in: groupIds } },
+  //     include: { _count: { select: { participants: true } } },
+  //   })
+  // )
+  // .map((group) => ({
+  //   ...group,
+  //   createdAt: group.createdAt.toISOString(),
+  // }))
+}
+
+export async function createGroup(groupFormValues: GroupFormValues): Promise<GroupWithUsers> {
+  let group: GroupWithUsers = (await axios.post(
+    `${api_url}/groups`, 
+    {
       name: groupFormValues.name,
-      currency: groupFormValues.currency,
-      participants: {
-        createMany: {
-          data: groupFormValues.participants.map(({ name }) => ({
-            id: randomId(),
-            name,
-          })),
-        },
-      },
-    },
-    include: { participants: true },
+      default_currency: groupFormValues.currency,
+    }
+  )).data
+
+  groupFormValues.participants.map( async (id) => {
+    await axios.post(
+      `${api_url}/groups/${group.id}/add_user`,
+      {
+        user_id: id,
+      }
+    )
   })
+
+  return group
+}
+
+export async function updateGroup(
+  groupId: string,
+  groupFormValues: GroupFormValues,
+  participantId?: string,
+): Promise<GroupWithUsers> {
+  const existingGroup = await getGroup(groupId)
+  if (!existingGroup) throw new Error('Invalid group ID')
+
+  
+  return (await axios.put(`${api_url}/groups/${groupId}`, {})).data
+
+  // await logActivity(groupId, ActivityType.UPDATE_GROUP, { participantId })
+
+  // return prisma.group.update({
+  //   where: { id: groupId },
+  //   data: {
+  //     name: groupFormValues.name,
+  //     currency: groupFormValues.currency,
+  //     participants: {
+  //       deleteMany: existingGroup.users.filter(
+  //         (p) => !groupFormValues.participants.some((p2) => p2.id === p.id),
+  //       ),
+  //       updateMany: groupFormValues.participants
+  //         .filter((participant) => participant.id !== undefined)
+  //         .map((participant) => ({
+  //           where: { id: participant.id },
+  //           data: {
+  //             name: participant.name,
+  //           },
+  //         })),
+  //       createMany: {
+  //         data: groupFormValues.participants
+  //           .filter((participant) => participant.id === undefined)
+  //           .map((participant) => ({
+  //             id: randomId(),
+  //             name: participant.name,
+  //           })),
+  //       },
+  //     },
+  //   },
+  // })
+}
+
+export async function getExpense(groupId: string, expenseId: string): Promise<ExpenseRich> {
+  return (await axios.post(`${api_url}/expense?id=${expenseId}`)).data
+  // return prisma.expense.findUnique({
+  //   where: { id: expenseId },
+  //   include: { paidBy: true, paidFor: true, category: true, documents: true },
+  // })
 }
 
 export async function createExpense(
   expenseFormValues: ExpenseFormValues,
   groupId: string,
   participantId?: string,
-): Promise<Expense> {
-  const group = await getGroup(groupId)
-  if (!group) throw new Error(`Invalid group ID: ${groupId}`)
+): Promise<ExpenseRich> {
+  return (await axios.post(`${api_url}/expense`)).data
+  // const group = await getGroup(groupId)
+  // if (!group) throw new Error(`Invalid group ID: ${groupId}`)
 
-  for (const participant of [
-    expenseFormValues.paidBy,
-    ...expenseFormValues.paidFor.map((p) => p.participant),
-  ]) {
-    if (!group.participants.some((p) => p.id === participant))
-      throw new Error(`Invalid participant ID: ${participant}`)
-  }
+  // for (const participant of [
+  //   expenseFormValues.paidBy,
+  //   ...expenseFormValues.paidFor.map((p) => p.participant),
+  // ]) {
+  //   if (!group.users.some((p) => p.id === participant))
+  //     throw new Error(`Invalid participant ID: ${participant}`)
+  // }
 
-  const expenseId = randomId()
-  await logActivity(groupId, ActivityType.CREATE_EXPENSE, {
-    participantId,
-    expenseId,
-    data: expenseFormValues.title,
-  })
+  // const expenseId = randomId()
+  // await logActivity(groupId, ActivityType.CREATE_EXPENSE, {
+  //   participantId,
+  //   expenseId,
+  //   data: expenseFormValues.title,
+  // })
 
-  return prisma.expense.create({
-    data: {
-      id: expenseId,
-      groupId,
-      expenseDate: expenseFormValues.expenseDate,
-      categoryId: expenseFormValues.category,
-      amount: expenseFormValues.amount,
-      title: expenseFormValues.title,
-      paidById: expenseFormValues.paidBy,
-      splitMode: expenseFormValues.splitMode,
-      paidFor: {
-        createMany: {
-          data: expenseFormValues.paidFor.map((paidFor) => ({
-            participantId: paidFor.participant,
-            shares: paidFor.shares,
-          })),
-        },
-      },
-      isReimbursement: expenseFormValues.isReimbursement,
-      documents: {
-        createMany: {
-          data: expenseFormValues.documents.map((doc) => ({
-            id: randomId(),
-            url: doc.url,
-            width: doc.width,
-            height: doc.height,
-          })),
-        },
-      },
-      notes: expenseFormValues.notes,
-    },
-  })
-}
-
-export async function deleteExpense(
-  groupId: string,
-  expenseId: string,
-  participantId?: string,
-) {
-  const existingExpense = await getExpense(groupId, expenseId)
-  await logActivity(groupId, ActivityType.DELETE_EXPENSE, {
-    participantId,
-    expenseId,
-    data: existingExpense?.title,
-  })
-
-  await prisma.expense.delete({
-    where: { id: expenseId },
-    include: { paidFor: true, paidBy: true },
-  })
-}
-
-export async function getGroupExpensesParticipants(groupId: string) {
-  const expenses = await getGroupExpenses(groupId)
-  return Array.from(
-    new Set(
-      expenses.flatMap((e) => [
-        e.paidBy.id,
-        ...e.paidFor.map((pf) => pf.participant.id),
-      ]),
-    ),
-  )
-}
-
-export async function getGroups(groupIds: string[]) {
-  return (
-    await prisma.group.findMany({
-      where: { id: { in: groupIds } },
-      include: { _count: { select: { participants: true } } },
-    })
-  ).map((group) => ({
-    ...group,
-    createdAt: group.createdAt.toISOString(),
-  }))
+  // return prisma.expense.create({
+  //   data: {
+  //     id: expenseId,
+  //     groupId,
+  //     expenseDate: expenseFormValues.expenseDate,
+  //     categoryId: expenseFormValues.category,
+  //     amount: expenseFormValues.amount,
+  //     title: expenseFormValues.title,
+  //     paidById: expenseFormValues.paidBy,
+  //     splitMode: expenseFormValues.splitMode,
+  //     paidFor: {
+  //       createMany: {
+  //         data: expenseFormValues.paidFor.map((paidFor) => ({
+  //           participantId: paidFor.participant,
+  //           shares: paidFor.shares,
+  //         })),
+  //       },
+  //     },
+  //     isReimbursement: expenseFormValues.isReimbursement,
+  //     documents: {
+  //       createMany: {
+  //         data: expenseFormValues.documents.map((doc) => ({
+  //           id: randomId(),
+  //           url: doc.url,
+  //           width: doc.width,
+  //           height: doc.height,
+  //         })),
+  //       },
+  //     },
+  //     notes: expenseFormValues.notes,
+  //   },
+  // })
 }
 
 export async function updateExpense(
@@ -130,197 +202,182 @@ export async function updateExpense(
   expenseId: string,
   expenseFormValues: ExpenseFormValues,
   participantId?: string,
-) {
-  const group = await getGroup(groupId)
-  if (!group) throw new Error(`Invalid group ID: ${groupId}`)
+): Promise<ExpenseRich> {
+  // TODO(mark) actually implement
+  return axios.put(`${api_url}/expense/${expenseId}`, {})
+  // const group = await getGroup(groupId)
+  // if (!group) throw new Error(`Invalid group ID: ${groupId}`)
 
-  const existingExpense = await getExpense(groupId, expenseId)
-  if (!existingExpense) throw new Error(`Invalid expense ID: ${expenseId}`)
+  // const existingExpense = await getExpense(groupId, expenseId)
+  // if (!existingExpense) throw new Error(`Invalid expense ID: ${expenseId}`)
 
-  for (const participant of [
-    expenseFormValues.paidBy,
-    ...expenseFormValues.paidFor.map((p) => p.participant),
-  ]) {
-    if (!group.participants.some((p) => p.id === participant))
-      throw new Error(`Invalid participant ID: ${participant}`)
-  }
+  // for (const participant of [
+  //   expenseFormValues.paidBy,
+  //   ...expenseFormValues.paidFor.map((p) => p.participant),
+  // ]) {
+  //   if (!group.users.some((p) => p.id === participant))
+  //     throw new Error(`Invalid participant ID: ${participant}`)
+  // }
 
-  await logActivity(groupId, ActivityType.UPDATE_EXPENSE, {
-    participantId,
-    expenseId,
-    data: expenseFormValues.title,
-  })
+  // await logActivity(groupId, ActivityType.UPDATE_EXPENSE, {
+  //   participantId,
+  //   expenseId,
+  //   data: expenseFormValues.title,
+  // })
 
-  return prisma.expense.update({
-    where: { id: expenseId },
-    data: {
-      expenseDate: expenseFormValues.expenseDate,
-      amount: expenseFormValues.amount,
-      title: expenseFormValues.title,
-      categoryId: expenseFormValues.category,
-      paidById: expenseFormValues.paidBy,
-      splitMode: expenseFormValues.splitMode,
-      paidFor: {
-        create: expenseFormValues.paidFor
-          .filter(
-            (p) =>
-              !existingExpense.paidFor.some(
-                (pp) => pp.participantId === p.participant,
-              ),
-          )
-          .map((paidFor) => ({
-            participantId: paidFor.participant,
-            shares: paidFor.shares,
-          })),
-        update: expenseFormValues.paidFor.map((paidFor) => ({
-          where: {
-            expenseId_participantId: {
-              expenseId,
-              participantId: paidFor.participant,
-            },
-          },
-          data: {
-            shares: paidFor.shares,
-          },
-        })),
-        deleteMany: existingExpense.paidFor.filter(
-          (paidFor) =>
-            !expenseFormValues.paidFor.some(
-              (pf) => pf.participant === paidFor.participantId,
-            ),
-        ),
-      },
-      isReimbursement: expenseFormValues.isReimbursement,
-      documents: {
-        connectOrCreate: expenseFormValues.documents.map((doc) => ({
-          create: doc,
-          where: { id: doc.id },
-        })),
-        deleteMany: existingExpense.documents
-          .filter(
-            (existingDoc) =>
-              !expenseFormValues.documents.some(
-                (doc) => doc.id === existingDoc.id,
-              ),
-          )
-          .map((doc) => ({
-            id: doc.id,
-          })),
-      },
-      notes: expenseFormValues.notes,
-    },
-  })
+  // return prisma.expense.update({
+  //   where: { id: expenseId },
+  //   data: {
+  //     expenseDate: expenseFormValues.expenseDate,
+  //     amount: expenseFormValues.amount,
+  //     title: expenseFormValues.title,
+  //     categoryId: expenseFormValues.category,
+  //     paidById: expenseFormValues.paidBy,
+  //     splitMode: expenseFormValues.splitMode,
+  //     paidFor: {
+  //       create: expenseFormValues.paidFor
+  //         .filter(
+  //           (p) =>
+  //             !existingExpense.paidFor.some(
+  //               (pp) => pp.participantId === p.participant,
+  //             ),
+  //         )
+  //         .map((paidFor) => ({
+  //           participantId: paidFor.participant,
+  //           shares: paidFor.shares,
+  //         })),
+  //       update: expenseFormValues.paidFor.map((paidFor) => ({
+  //         where: {
+  //           expenseId_participantId: {
+  //             expenseId,
+  //             participantId: paidFor.participant,
+  //           },
+  //         },
+  //         data: {
+  //           shares: paidFor.shares,
+  //         },
+  //       })),
+  //       deleteMany: existingExpense.paidFor.filter(
+  //         (paidFor) =>
+  //           !expenseFormValues.paidFor.some(
+  //             (pf) => pf.participant === paidFor.participantId,
+  //           ),
+  //       ),
+  //     },
+  //     isReimbursement: expenseFormValues.isReimbursement,
+  //     documents: {
+  //       connectOrCreate: expenseFormValues.documents.map((doc) => ({
+  //         create: doc,
+  //         where: { id: doc.id },
+  //       })),
+  //       deleteMany: existingExpense.documents
+  //         .filter(
+  //           (existingDoc) =>
+  //             !expenseFormValues.documents.some(
+  //               (doc) => doc.id === existingDoc.id,
+  //             ),
+  //         )
+  //         .map((doc) => ({
+  //           id: doc.id,
+  //         })),
+  //     },
+  //     notes: expenseFormValues.notes,
+  //   },
+  // })
 }
 
-export async function updateGroup(
+export async function deleteExpense(
   groupId: string,
-  groupFormValues: GroupFormValues,
+  expenseId: string,
   participantId?: string,
-) {
-  const existingGroup = await getGroup(groupId)
-  if (!existingGroup) throw new Error('Invalid group ID')
+): Promise<void> {
+  return axios.delete(`${api_url}/groups/${groupId}/expense`)
+  // const existingExpense = await getExpense(groupId, expenseId)
+  // await logActivity(groupId, ActivityType.DELETE_EXPENSE, {
+  //   participantId,
+  //   expenseId,
+  //   data: existingExpense?.title,
+  // })
 
-  await logActivity(groupId, ActivityType.UPDATE_GROUP, { participantId })
-
-  return prisma.group.update({
-    where: { id: groupId },
-    data: {
-      name: groupFormValues.name,
-      currency: groupFormValues.currency,
-      participants: {
-        deleteMany: existingGroup.participants.filter(
-          (p) => !groupFormValues.participants.some((p2) => p2.id === p.id),
-        ),
-        updateMany: groupFormValues.participants
-          .filter((participant) => participant.id !== undefined)
-          .map((participant) => ({
-            where: { id: participant.id },
-            data: {
-              name: participant.name,
-            },
-          })),
-        createMany: {
-          data: groupFormValues.participants
-            .filter((participant) => participant.id === undefined)
-            .map((participant) => ({
-              id: randomId(),
-              name: participant.name,
-            })),
-        },
-      },
-    },
-  })
+  // await prisma.expense.delete({
+  //   where: { id: expenseId },
+  //   include: { paidFor: true, paidBy: true },
+  // })
 }
 
-export async function getGroup(groupId: string) {
-  return prisma.group.findUnique({
-    where: { id: groupId },
-    include: { participants: true },
-  })
-}
-
-export async function getCategories() {
-  return prisma.category.findMany()
-}
 
 export async function getGroupExpenses(
   groupId: string,
   options?: { offset: number; length: number },
-) {
-  return prisma.expense.findMany({
-    select: {
-      amount: true,
-      category: true,
-      createdAt: true,
-      expenseDate: true,
-      id: true,
-      isReimbursement: true,
-      paidBy: { select: { id: true, name: true } },
-      paidFor: {
-        select: {
-          participant: { select: { id: true, name: true } },
-          shares: true,
-        },
-      },
-      splitMode: true,
-      title: true,
-    },
-    where: { groupId },
-    orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
-    skip: options && options.offset,
-    take: options && options.length,
-  })
+): Promise<ExpenseRich[]> {
+  return (await axios.get(`${api_url}/groups/${groupId}`)).data.expense_set
+  // return prisma.expense.findMany({
+  //   select: {
+  //     amount: true,
+  //     category: true,
+  //     createdAt: true,
+  //     expenseDate: true,
+  //     id: true,
+  //     isReimbursement: true,
+  //     paidBy: { select: { id: true, name: true } },
+  //     paidFor: {
+  //       select: {
+  //         participant: { select: { id: true, name: true } },
+  //         shares: true,
+  //       },
+  //     },
+  //     splitMode: true,
+  //     title: true,
+  //   },
+  //   where: { groupId },
+  //   orderBy: [{ expenseDate: 'desc' }, { createdAt: 'desc' }],
+  //   skip: options && options.offset,
+  //   take: options && options.length,
+  // })
 }
 
-export async function getGroupExpenseCount(groupId: string) {
-  return prisma.expense.count({ where: { groupId } })
+export async function getGroupExpensesParticipants(groupId: string): Promise<string[]> {
+  // TODO(mark): actually do
+  return (await axios.get(`${api_url}/groups/${groupId}`))
+  // const expenses = await getGroupExpenses(groupId)
+  // return Array.from(
+  //   new Set(
+  //     expenses.flatMap((e) => [
+  //       e.paidBy.id,
+  //       ...e.paidFor.map((pf) => pf.participant.id),
+  //     ]),
+  //   ),
+  // )
 }
 
-export async function getExpense(groupId: string, expenseId: string) {
-  return prisma.expense.findUnique({
-    where: { id: expenseId },
-    include: { paidBy: true, paidFor: true, category: true, documents: true },
-  })
+export async function getGroupExpenseCount(groupId: string): Promise<number> {
+  return (await getGroupExpenses(groupId)).length
 }
 
-export async function getActivities(groupId: string) {
-  return prisma.activity.findMany({
-    where: { groupId },
-    orderBy: [{ time: 'desc' }],
-  })
+
+export async function getCategories(): Promise<Category[]> {
+  return [{id: 1, grouping: 'general', name: 'General'}]
 }
 
-export async function logActivity(
-  groupId: string,
-  activityType: ActivityType,
-  extra?: { participantId?: string; expenseId?: string; data?: string },
-) {
-  return prisma.activity.create({
-    data: {
-      id: randomId(),
-      groupId,
-      activityType,
-      ...extra,
-    },
-  })
+export async function getActivities(groupId: string): Promise<Activity[]> {
+  return axios.get(`${api_url}/groups/${groupId}/activities`)
+  // return prisma.activity.findMany({
+  //   where: { groupId },
+  //   orderBy: [{ time: 'desc' }],
+  // })
 }
+
+// export async function logActivity(
+//   groupId: string,
+//   activityType: ActivityType,
+//   extra?: { participantId?: string; expenseId?: string; data?: string },
+// ): Promise<Activity> {
+//   return prisma.activity.create({
+//     data: {
+//       id: randomId(),
+//       groupId,
+//       activityType,
+//       ...extra,
+//     },
+//   })
+// }

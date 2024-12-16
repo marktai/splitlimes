@@ -77,7 +77,7 @@ const capitalize = (value: string) =>
 const getDefaultSplittingOptions = (group: Props['group']) => {
   const defaultValue = {
     splitMode: 'EVENLY' as const,
-    paidFor: group.participants.map(({ id }) => ({
+    paidFor: group.users.map(({ id }) => ({
       participant: id,
       shares: '1' as unknown as number,
     })),
@@ -100,7 +100,7 @@ const getDefaultSplittingOptions = (group: Props['group']) => {
   // remove the stale default splitting options
   for (const parsedPaidFor of parsedDefaultSplitMode.paidFor) {
     if (
-      !group.participants.some(({ id }) => id === parsedPaidFor.participant)
+      !group.users.some(({ id }) => id === parsedPaidFor.participant)
     ) {
       localStorage.removeItem(`${group.id}-defaultSplittingOptions`)
       return defaultValue
@@ -175,14 +175,14 @@ export function ExpenseForm({
           amount: String(expense.amount / 100) as unknown as number, // hack
           category: expense.categoryId,
           paidBy: expense.paidById,
-          paidFor: expense.paidFor.map(({ participantId, shares }) => ({
-            participant: participantId,
+          paidFor: expense.paidFor.map(({ participant, shares }) => ({
+            participant: participant,
             shares: String(shares / 100) as unknown as number,
           })),
           splitMode: expense.splitMode,
           saveDefaultSplittingOptions: false,
           isReimbursement: expense.isReimbursement,
-          documents: expense.documents,
+          // documents: expense.documents,
           notes: expense.notes ?? '',
         }
       : searchParams.get('reimbursement')
@@ -403,7 +403,7 @@ export function ExpenseForm({
                       <SelectValue placeholder="Select a participant" />
                     </SelectTrigger>
                     <SelectContent>
-                      {group.participants.map(({ id, name }) => (
+                      {group.users.map(({ id, name }) => (
                         <SelectItem key={id} value={id}>
                           {name}
                         </SelectItem>
@@ -443,10 +443,10 @@ export function ExpenseForm({
                 onClick={() => {
                   const paidFor = form.getValues().paidFor
                   const allSelected =
-                    paidFor.length === group.participants.length
+                    paidFor.length === group.users.length
                   const newPaidFor = allSelected
                     ? []
-                    : group.participants.map((p) => ({
+                    : group.users.map((p) => ({
                         participant: p.id,
                         shares:
                           paidFor.find((pfor) => pfor.participant === p.id)
@@ -460,7 +460,7 @@ export function ExpenseForm({
                 }}
               >
                 {form.getValues().paidFor.length ===
-                group.participants.length ? (
+                group.users.length ? (
                   <>Select none</>
                 ) : (
                   <>Select all</>
@@ -477,7 +477,7 @@ export function ExpenseForm({
               name="paidFor"
               render={() => (
                 <FormItem className="sm:order-4 row-span-2 space-y-0">
-                  {group.participants.map(({ id, name }) => (
+                  {group.users.map(({ id, name }) => (
                     <FormField
                       key={id}
                       control={form.control}
