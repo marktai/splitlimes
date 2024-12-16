@@ -170,8 +170,8 @@ export function ExpenseForm({
     resolver: zodResolver(expenseFormSchema),
     defaultValues: expense
       ? {
-          title: expense.title,
-          expenseDate: expense.expenseDate ?? new Date(),
+          title: expense.name,
+          expenseDate: expense.expense_date ?? new Date(),
           amount: String(expense.amount / 100) as unknown as number, // hack
           category: expense.categoryId,
           paidBy: expense.paidById,

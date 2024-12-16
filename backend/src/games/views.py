@@ -75,8 +75,12 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             "name": request.data["name"],
             "group": Group.objects.get(id=request.data["group"]),
             "total_mills": request.data["total_mills"],
+            "currency": request.data["currency"],
             "pay_json": request.data["pay_json"],
             "split_json": request.data["split_json"],
+            "expense_date": request.data["expense_date"],
+            "is_reimbursement": request.data.get("is_reimbursement", False),
+            "notes": request.data.get("notes", ""),
         }
         new_expense = Expense(**fields)
         new_expense.save()
@@ -89,6 +93,9 @@ class UserSplitExpenseViewSet(viewsets.ModelViewSet):
     serializer_class = UserSplitExpenseSerializer
     queryset = UserSplitExpense.objects.all()
 
+class ActivityViewSet(viewsets.ModelViewSet):
+    serializer_class = ActivitySerializer
+    queryset = Activity.objects.all()
 
 class AddUserToGroup(APIView):
     def post(self, request, *args, **kwargs):

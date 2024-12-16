@@ -53,7 +53,7 @@ function getExpenseGroup(date: Dayjs, today: Dayjs) {
 function getGroupedExpensesByDate(expenses: ExpensesType) {
   const today = dayjs()
   return expenses.reduce((result: { [key: string]: ExpensesType }, expense) => {
-    const expenseGroup = getExpenseGroup(dayjs(expense.expenseDate), today)
+    const expenseGroup = getExpenseGroup(dayjs(expense.expense_date), today)
     result[expenseGroup] = result[expenseGroup] ?? []
     result[expenseGroup].push(expense)
     return result
@@ -139,7 +139,7 @@ export function ExpenseList({
         let groupExpenses = groupedExpensesByDate[expenseGroup]
         if (!groupExpenses) return null
 
-        groupExpenses = groupExpenses.filter(({ title }) =>
+        groupExpenses = groupExpenses.filter(({ name: title }) =>
           title.toLowerCase().includes(searchText.toLowerCase()),
         )
 

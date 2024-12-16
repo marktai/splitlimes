@@ -31,6 +31,7 @@ router = OptionalSlashRouter()
 router.register('expenses', views.ExpenseViewSet, basename='Expense')
 router.register('users', views.UserViewSet, basename='User')
 router.register('groups', views.GroupViewSet, basename='Group')
+router.register('activities', views.ActivityViewSet, basename='Activities')
 router.register('user_split_expenses', views.UserSplitExpenseViewSet, basename='UserSplitExpense')
 
 urlpatterns = [

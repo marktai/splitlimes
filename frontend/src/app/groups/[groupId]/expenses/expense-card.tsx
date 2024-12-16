@@ -35,10 +35,10 @@ export function ExpenseCard({ expense, currency, groupId }: Props) {
       /> */}
       <div className="flex-1">
         <div className={cn('mb-1', expense.isReimbursement && 'italic')}>
-          {expense.title}
+          {expense.name}
         </div>
         <div className="text-xs text-muted-foreground">
-          {expense.amount > 0 ? 'Paid by ' : 'Received by '}
+          {expense.total_mills > 0 ? 'Paid by ' : 'Received by '}
           {/* <strong>{expense.paidBy.name}</strong> for{' '}
           {expense.paidFor.map((paidFor, index) => (
             <Fragment key={index}>
@@ -58,10 +58,10 @@ export function ExpenseCard({ expense, currency, groupId }: Props) {
             expense.isReimbursement ? 'italic' : 'font-bold',
           )}
         >
-          {formatCurrency(currency, expense.amount)}
+          {expense.currency} {formatCurrency(expense.currency, expense.total_mills/1000.0)}
         </div>
         <div className="text-xs text-muted-foreground">
-          {formatDate(expense.expenseDate, { dateStyle: 'medium' })}
+          {formatDate(expense.expense_date, { dateStyle: 'medium' })}
         </div>
       </div>
       <Button

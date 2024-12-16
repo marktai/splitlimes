@@ -31,8 +31,12 @@ type GroupWithUsers = {
 
 type ExpenseRich = {
   id: string;
-  expenseDate: Date;
-  title: string;
+  expense_date: Date;
+  name: string;
+  pay_json: Object;
+  split_json: Object;
+  total_mills: number;
+  currency: string;
   categoryId: number;
   amount: number;
   paidById: string;
@@ -54,7 +58,7 @@ export async function getGroup(groupId: string): Promise<GroupWithUsers> {
 }
 
 export async function getGroups(groupIds: string[]): Promise<GroupWithUsers[]> {
-  return (await axios.get(`${api_url}/groups/?ids=${groupIds.join(',')}`)).data
+  return (await axios.get(`${api_url}/groups/?ids=${groupIds.join(',')}`)).data.results
   // return (
   //   await prisma.group.findMany({
   //     where: { id: { in: groupIds } },
@@ -73,7 +77,7 @@ export async function createGroup(groupFormValues: GroupFormValues): Promise<Gro
     {
       name: groupFormValues.name,
       default_currency: groupFormValues.currency,
-    }
+    },
   )).data
 
   groupFormValues.participants.map( async (id) => {
@@ -132,7 +136,7 @@ export async function updateGroup(
 }
 
 export async function getExpense(groupId: string, expenseId: string): Promise<ExpenseRich> {
-  return (await axios.post(`${api_url}/expense?id=${expenseId}`)).data
+  return (await axios.post(`${api_url}/expenses?id=${expenseId}`)).data
   // return prisma.expense.findUnique({
   //   where: { id: expenseId },
   //   include: { paidBy: true, paidFor: true, category: true, documents: true },
@@ -144,7 +148,37 @@ export async function createExpense(
   groupId: string,
   participantId?: string,
 ): Promise<ExpenseRich> {
-  return (await axios.post(`${api_url}/expense`)).data
+  let data = {
+    name: expenseFormValues.title,
+    group: groupId,
+    total_mills: expenseFormValues.amount * 1e3,
+    pay_json: {
+      type: 'equally',
+      users: [expenseFormValues.paidBy]
+    },
+    split_json: {
+      type: 'equally',
+      users: [expenseFormValues.paidBy]
+    },
+    // paidFor: {
+    //   createMany: {
+    //     data: expenseFormValues.paidFor.map((paidFor) => ({
+    //       participantId: paidFor.participant,
+    //       shares: paidFor.shares,
+    //     })),
+    //   },
+    // },
+    expense_date: `${expenseFormValues.expenseDate.getFullYear()}-${expenseFormValues.expenseDate.getMonth() + 1}-${expenseFormValues.expenseDate.getDate()}`,
+    is_reimbursement: expenseFormValues.isReimbursement,
+    category_id: expenseFormValues.category,
+    notes: expenseFormValues.notes,
+  };
+  console.log(data);
+  let expenseResponse = await axios.post(
+    `${api_url}/expenses`,
+    data,
+  )
+  return expenseResponse.data
   // const group = await getGroup(groupId)
   // if (!group) throw new Error(`Invalid group ID: ${groupId}`)
 
@@ -204,7 +238,7 @@ export async function updateExpense(
   participantId?: string,
 ): Promise<ExpenseRich> {
   // TODO(mark) actually implement
-  return axios.put(`${api_url}/expense/${expenseId}`, {})
+  return (await axios.put(`${api_url}/expenses/${expenseId}`, {})).data
   // const group = await getGroup(groupId)
   // if (!group) throw new Error(`Invalid group ID: ${groupId}`)
 
@@ -291,7 +325,7 @@ export async function deleteExpense(
   expenseId: string,
   participantId?: string,
 ): Promise<void> {
-  return axios.delete(`${api_url}/groups/${groupId}/expense`)
+  return (await axios.delete(`${api_url}/groups/${groupId}/expense`)).data
   // const existingExpense = await getExpense(groupId, expenseId)
   // await logActivity(groupId, ActivityType.DELETE_EXPENSE, {
   //   participantId,
@@ -360,7 +394,7 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function getActivities(groupId: string): Promise<Activity[]> {
-  return axios.get(`${api_url}/groups/${groupId}/activities`)
+  return (await axios.get(`${api_url}/activities?group_id=${groupId}`)).data.results
   // return prisma.activity.findMany({
   //   where: { groupId },
   //   orderBy: [{ time: 'desc' }],

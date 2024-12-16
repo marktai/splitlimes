@@ -61,7 +61,8 @@ class Expense(models.Model):
     name = models.CharField(max_length=200)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     total_mills = models.IntegerField()
-    pay_json = models.JSONField(null=True) # same format as split_json
+    currency = models.CharField(max_length=3)
+    pay_json = models.JSONField() # same format as split_json
     split_json = models.JSONField()
     expense_date = models.DateField(default=date.today)
 
@@ -70,7 +71,6 @@ class Expense(models.Model):
     is_reimbursement = models.BooleanField(default=False)
     category = models.CharField(max_length=100)
     notes = models.CharField(max_length=1000)
-    currency = models.CharField(max_length=3)
 
     # split_json types
     # TODO(mark): JSON schemas
